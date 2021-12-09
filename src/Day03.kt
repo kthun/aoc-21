@@ -1,21 +1,28 @@
-package advent2021
-
-import java.io.File
+import kotlin.math.pow
 
 fun main() {
-    val lines = File("src/main/kotlin/advent2021/input/03.txt").readLines()
+    fun part1(input: List<String>): Int {
+        val gammaDelta = mostLeastCommonBit(input)
+        return gammaDelta[0] * gammaDelta[1]
+    }
 
-//    val gammaDelta = mostLeastCommonBit(lines)
-//
-//    println(gammaDelta[0] * gammaDelta[1])
+    fun part2(input: List<String>): Int {
+        val o2rating = findAirRating(input.toMutableList(), true)
+        val co2rating = findAirRating(input.toMutableList(), false)
+        return o2rating * co2rating
+    }
 
-    val o2rating = findO2Rating(lines.toMutableList(), true)
-    val co2rating = findO2Rating(lines.toMutableList(), false)
+    // test if implementation meets criteria from the description, like:
+    val testInput = readInput("Day03_test")
+    check(part1(testInput) == 198)
+    check(part2(testInput) == 230)
 
-    println("$o2rating, $co2rating, ${o2rating * co2rating}")
+    val input = readInput("Day03")
+    println(part1(input))
+    println(part2(input))
 }
 
-fun findO2Rating(lines: MutableList<String>, findMostCommon: Boolean): Int {
+fun findAirRating(lines: List<String>, findMostCommon: Boolean): Int {
 
     var myLines = lines
     var bitIndexToCheck = 0
@@ -83,8 +90,8 @@ private fun createBitArrayCounters(lines: List<String>): List<IntArray> {
     return bitArrayCounters
 }
 
-fun convertBinaryToDecimal(num: Long): Int {
-    var num = num
+fun convertBinaryToDecimal(binaryNum: Long): Int {
+    var num = binaryNum
     var decimalNumber = 0
     var i = 0
     var remainder: Long
@@ -92,7 +99,7 @@ fun convertBinaryToDecimal(num: Long): Int {
     while (num.toInt() != 0) {
         remainder = num % 10
         num /= 10
-        decimalNumber += (remainder * Math.pow(2.0, i.toDouble())).toInt()
+        decimalNumber += (remainder * 2.0.pow(i.toDouble())).toInt()
         ++i
     }
     return decimalNumber
