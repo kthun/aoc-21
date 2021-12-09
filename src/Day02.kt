@@ -1,20 +1,23 @@
-package advent2021
-
-import java.io.File
-
 fun main() {
+    fun part1(input: List<String>): Int {
+        return calculatePosSimple(input)
+    }
 
-    val instructions = File("src/main/kotlin/advent2021/input/02.txt").readLines()
+    fun part2(input: List<String>): Int {
+        return calculatePosAim(input)
+    }
 
-    val simple = calculatePosSimple(instructions)
-    println(simple[0] * simple[1])
+    // test if implementation meets criteria from the description, like:
+    val testInput = readInput("Day02_test")
+    check(part1(testInput) == 150)
+    check(part2(testInput) == 900)
 
-    val aim = calculatePosAim(instructions)
-    println(aim[0] * aim[1])
-
+    val input = readInput("Day02")
+    println(part1(input))
+    println(part2(input))
 }
 
-private fun calculatePosAim(instructions: List<String>): List<Int> {
+private fun calculatePosAim(instructions: List<String>): Int {
     var currentHorPos = 0
     var currentDepth = 0
     var currentVertAim = 0
@@ -31,10 +34,10 @@ private fun calculatePosAim(instructions: List<String>): List<Int> {
             "up" -> currentVertAim -= split[1].toInt()
         }
     }
-    return listOf(currentHorPos, currentDepth)
+    return currentHorPos * currentDepth
 }
 
-private fun calculatePosSimple(instructions: List<String>): List<Int> {
+private fun calculatePosSimple(instructions: List<String>): Int {
     var currentHorPos = 0
     var currentDepth = 0
 
@@ -47,5 +50,5 @@ private fun calculatePosSimple(instructions: List<String>): List<Int> {
             "up" -> currentDepth -= split[1].toInt()
         }
     }
-    return listOf(currentHorPos, currentDepth)
+    return currentHorPos * currentDepth
 }
