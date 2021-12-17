@@ -13,3 +13,9 @@ fun readInputAsInts(name: String) = File("src", "$name.txt").readLines().map { i
  * Converts string to md5 hash.
  */
 fun String.md5(): String = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteArray())).toString(16)
+
+data class Coord(val x: Int, val y: Int) {
+    fun neighbours(): List<Coord> {
+        TODO()
+    }
+}
