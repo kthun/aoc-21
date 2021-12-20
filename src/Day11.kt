@@ -1,22 +1,9 @@
-import kotlin.system.exitProcess
-
-//import Utils.Coord
-
-data class Octopus(val coord: Coord, var level: Int, val flashedThisTurn: Boolean = false, val neighbourCoords: List<Coord> = coord.neighbours()) {
-
-
-//    fun nextLevelAndMaybeFlash(turn: Int): Boolean {
-//        if (lastFlash < turn) {
-//            level++
-//            if (level >= 10) {
-//                level == 0
-//                neighbours.forEach { it.nextLevelAndMaybeFlash(turn) }
-//                return true
-//            }
-//        }
-//        return false
-//    }
-}
+data class Octopus(
+    val coord: Coord,
+    var level: Int,
+    val flashedThisTurn: Boolean = false,
+    val neighbourCoords: List<Coord> = coord.neighbours()
+)
 
 fun main() {
     fun printGrid(octopuses: List<List<Octopus>>) {
@@ -29,56 +16,68 @@ fun main() {
         println()
     }
 
-    fun part1(input: List<String>): Int {
-        val octopusGrid = input.withIndex().map { (x, line) ->
-            line.withIndex().map { (y, char) ->
-                Octopus(Coord(x, y), char.digitToInt())
-            }
+    fun List<List<Octopus>>.propogateFlashAndReturnFlashers(): List<Octopus> {
+        val octopusList = this.flatten()
+        val width = this[0].size
+        val height = this.size
+
+        val readyToFlash = octopusList.filter { it.level > 9 }
+        readyToFlash.forEach { it.level = 0 }
+
+        readyToFlash.flatMap { it.neighbourCoords }
+            .filter { it.x in 0 until width && it.y in 0 until height }
+            .map { this[it.x][it.y] }
+            .filter { it in octopusList && it.level != 0 }
+            .forEach { it.level++ }
+        return readyToFlash
+    }
+
+    fun List<List<Octopus>>.advanceOneTurnAndCountFlashes(): Int {
+        val octopusList = flatten()
+        var numFlashesThisTurn = 0
+        octopusList.forEach { it.level++ }
+        do {
+            val flashersThisTurn = propogateFlashAndReturnFlashers()
+        } while (flashersThisTurn.isNotEmpty())
+        numFlashesThisTurn += octopusList.count { it.level == 0 }
+        return numFlashesThisTurn
+    }
+
+    fun List<String>.buildOctopusGrid() = withIndex().map { (x, line) ->
+        line.withIndex().map { (y, char) ->
+            Octopus(Coord(x, y), char.digitToInt())
         }
+    }
+
+    fun part1(input: List<String>): Int {
+        val octopusGrid = input.buildOctopusGrid()
 
         var flashCounter = 0
-        val width = octopusGrid[0].size
-        val height = octopusGrid.size
-
-        printGrid(octopusGrid)
-        val octopusList = octopusGrid.flatten()
-
-        for (turn in 1..5) {
-            octopusList.forEach { it.level++ }
-
-
-            do {
-                val readyToFlash = octopusList.filter { it.level > 9 }
-//                println("numflashers: ${readyToFlash.size}")
-                readyToFlash.forEach { it.level = 0 }
-
-                readyToFlash.flatMap { it.neighbourCoords }
-                    .filter { it.x in 0 until width && it.y in 0 until height }
-                    .map { octopusGrid[it.x][it.y] }
-                    .filter { it in octopusList && it.level != 0 }
-                    .forEach { it.level++ }
-            } while (readyToFlash.isNotEmpty())
-
-            printGrid(octopusGrid)
-
-            flashCounter += octopusList.count { it.level == 0 }
-
-
-
+        for (turn in 1..100) {
+            flashCounter += octopusGrid.advanceOneTurnAndCountFlashes()
         }
         return flashCounter
     }
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val octopusGrid = input.buildOctopusGrid()
+        val numOctopuses = octopusGrid.sumOf { it.size }
+
+        for (i in 1..1000) {
+            val flashersThisTurn = octopusGrid.advanceOneTurnAndCountFlashes()
+            if (flashersThisTurn == numOctopuses) {
+                return i
+            }
+        }
+        return -1
     }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day11_test")
-    println(part1(testInput))
-//    check(part1(testInput) == 1)
+    check(part1(testInput) == 1656)
+    check(part2(testInput) == 195)
 
     val input = readInput("Day11")
-//    println(part1(input))
-//    println(part2(input))
+    println(part1(input))
+    println(part2(input))
 }
