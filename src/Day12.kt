@@ -1,8 +1,8 @@
-public enum class CAVESIZES {
+enum class CAVESIZES {
     SMALL, LARGE
 }
 
-data class Cave(val name: String, val size: CAVESIZES, var neighbours: MutableList<Cave> = mutableListOf<Cave>()) {
+data class Cave(val name: String, val size: CAVESIZES) {
     companion object {
         fun createCave(name: String): Cave {
             return Cave(name, if (name.all(Char::isUpperCase)) CAVESIZES.LARGE else CAVESIZES.SMALL)
@@ -10,79 +10,88 @@ data class Cave(val name: String, val size: CAVESIZES, var neighbours: MutableLi
     }
 }
 
-data class Link(val from: Cave, val to: Cave)
+fun visitRulePart1(cave: Cave, path: List<Cave>): Boolean {
+    if (cave !in path) return true
+    return cave.size == CAVESIZES.LARGE
+}
 
-data class Path(val visitedCaves: MutableList<Cave>) {
-    fun extendPathTo(nextCave: Cave): Path? {
-        return if (nextCave.size == CAVESIZES.SMALL && visitedCaves.contains(nextCave)) {
-            null
-        } else {
-            val extendedPath = Path(this.visitedCaves)
-            extendedPath.visitedCaves.add(nextCave)
-            extendedPath
-        }
-    }
+fun visitRulePart2(cave: Cave, path: List<Cave>): Boolean {
+    if (cave.size == CAVESIZES.LARGE) return true
+    if (cave.name in setOf("start", "end")) return cave !in path
+    if (path
+            .groupBy { it }
+            .filter { it.key.size == CAVESIZES.SMALL }
+            .any { it.value.size > 1}) return cave !in path
+    return true
 }
 
 fun main() {
-    fun part1(input: List<String>): Int {
-
-        var caves = mutableMapOf<String, Cave>()
-        fun getOrCreateCave(caveName: String): Cave {
-            return if (caves.containsKey(caveName)) {
-                caves[caveName]!!
-            } else {
-                val newCave = Cave.createCave(caveName)
-                caves[caveName] = newCave
-                newCave
+    fun parseInput(input: List<String>): Map<Cave, List<Cave>> {
+        val caveNeighbours = input
+            .map { it.split("-") }
+            .flatMap {
+                listOf(
+                    Cave.createCave(it.first()) to Cave.createCave(it.last()),
+                    Cave.createCave(it.last()) to Cave.createCave(it.first())
+                )
             }
-        }
+            .groupBy({ it.first }, { it.second })
 
-        val inputRegex = """([A-Za-z]+)-([A-Za-z]+)""".toRegex()
-        input.forEach { line ->
-            val (caveFromString, caveToString) = inputRegex.matchEntire(line)?.destructured
-                ?: throw IllegalArgumentException("")
-            val caveFrom = getOrCreateCave(caveFromString)
-            val caveTo = getOrCreateCave(caveToString)
-            caveFrom.neighbours.add(caveTo)
-        }
-
-        val pathsToCave = mutableMapOf<Cave, MutableList<Path>>()
-        for (cave in caves.values) {
-            pathsToCave[cave] = mutableListOf<Path>()
-        }
-
-        pathsToCave[caves["start"]!!]!!.add(Path(mutableListOf()))
-        val currentCave = caves["start"]!!
-
-
-        val pathsToCurrentCave = pathsToCave[currentCave]!!
-        for (path in pathsToCurrentCave) {
-            for (neighbour in currentCave.neighbours) {
-                val extendedPath = path.extendPathTo(neighbour)
-                extendedPath?.let { pathsToCave[neighbour]!!.add(it) }
-            }
-        }
-
-
-
-//        println(caves)
-        return input.size
+        return caveNeighbours
     }
+
+    fun part1(input: List<String>): Int {
+        val cavesWithNeighbours = parseInput(input)
+
+        val startCave = cavesWithNeighbours.keys.first { it.name == "start" }
+        val endCave = cavesWithNeighbours.keys.first { it.name == "end" }
+
+        fun traverse(
+            allowedToVisit: (Cave, List<Cave>) -> Boolean,
+            path: List<Cave> = listOf(startCave)
+        ): List<List<Cave>> {
+            return if (path.last() == endCave) listOf(path)
+            else cavesWithNeighbours.getValue(path.last())
+                .filter { allowedToVisit(it, path) }
+                .flatMap {
+                    traverse(allowedToVisit, path + it)
+                }
+        }
+        return traverse(::visitRulePart1).size
+    }
+
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val cavesWithNeighbours = parseInput(input)
+
+        val startCave = cavesWithNeighbours.keys.first { it.name == "start" }
+        val endCave = cavesWithNeighbours.keys.first { it.name == "end" }
+
+        fun traverse(
+            allowedToVisit: (Cave, List<Cave>) -> Boolean,
+            path: List<Cave> = listOf(startCave)
+        ): List<List<Cave>> {
+            return if (path.last() == endCave) listOf(path)
+            else cavesWithNeighbours.getValue(path.last())
+                .filter { allowedToVisit(it, path) }
+                .flatMap {
+                    traverse(allowedToVisit, path + it)
+                }
+        }
+
+        return traverse(::visitRulePart2).size
     }
 
-    // test if implementation meets criteria from the description, like:
+// test if implementation meets criteria from the description, like:
     val testInput = readInput("Day12_test")
-    println(part1(testInput))
-//    check(part1(testInput) == 7)
+    check(part1(testInput) == 10)
+    check(part2(testInput) == 36)
+//    println(part2(testInput))
 //    check(part2(testInput) == 5)
 
     val input = readInput("Day12")
-//    println(part1(input))
-//    println(part2(input))
+    println(part1(input))
+    println(part2(input))
 }
 
 
