@@ -1,44 +1,43 @@
 import kotlin.math.abs
 
-private enum class LineCountType {
+enum class LineCountType {
     ALL_LINES,
     ORTHOGONAL_ONLY
 }
 
-fun main() {
-
-    data class Coord(val x: Int, val y: Int)
-
-    data class VentLine(val start: Coord, val end: Coord) {
-        fun pointsCovered(typesToCount: LineCountType): List<Coord> {
-            return when (typesToCount) {
-                LineCountType.ALL_LINES -> pointsCovered()
-                LineCountType.ORTHOGONAL_ONLY -> {
-                    if (start.x != end.x && start.y != end.y) {
-                        emptyList()
-                    } else {
-                        pointsCovered()
-                    }
+data class VentLine(val start: Coord, val end: Coord) {
+    fun pointsCovered(typesToCount: LineCountType): List<Coord> {
+        return when (typesToCount) {
+            LineCountType.ALL_LINES -> pointsCovered()
+            LineCountType.ORTHOGONAL_ONLY -> {
+                if (start.x != end.x && start.y != end.y) {
+                    emptyList()
+                } else {
+                    pointsCovered()
                 }
             }
         }
-
-        private fun pointsCovered(): List<Coord> {
-            val points = mutableListOf<Coord>()
-            val xDistance = start.x - end.x
-            val yDistance = start.y - end.y
-
-            val xStep = if (xDistance > 0) -1 else if (xDistance < 0) 1 else 0
-            val yStep = if (yDistance > 0) -1 else if (yDistance < 0) 1 else 0
-
-            val distance = maxOf(abs(xDistance), abs(yDistance))
-
-            for (i in 0 .. distance) {
-                points.add(Coord(start.x + i * xStep, start.y + i * yStep))
-            }
-            return points
-        }
     }
+
+    private fun pointsCovered(): List<Coord> {
+        val points = mutableListOf<Coord>()
+        val xDistance = start.x - end.x
+        val yDistance = start.y - end.y
+
+        val xStep = if (xDistance > 0) -1 else if (xDistance < 0) 1 else 0
+        val yStep = if (yDistance > 0) -1 else if (yDistance < 0) 1 else 0
+
+        val distance = maxOf(abs(xDistance), abs(yDistance))
+
+        for (i in 0 .. distance) {
+            points.add(Coord(start.x + i * xStep, start.y + i * yStep))
+        }
+        return points
+    }
+}
+
+
+fun main() {
 
     fun countCrossingLines(input: List<String>, typesToCount: LineCountType): Int {
         val lines = input
