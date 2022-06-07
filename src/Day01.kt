@@ -1,10 +1,16 @@
 fun main() {
+    fun parseInput(input: List<String>): List<Int> {
+        return input.map { it.toInt() }
+    }
+
     fun part1(input: List<String>): Int {
-        return countDepthIncreasesEachLine(input)
+        val part1Input = parseInput(input)
+        return countDepthIncreasesEachLine(part1Input)
     }
 
     fun part2(input: List<String>): Int {
-        return countDepthIncreasesSlidingWindow(input, 3)
+        val part2Input = parseInput(input)
+        return countDepthIncreasesSlidingWindow(part2Input, 3)
     }
 
     // test if implementation meets criteria from the description, like:
@@ -17,32 +23,29 @@ fun main() {
     println(part2(input))
 }
 
-private fun countDepthIncreasesSlidingWindow(lines: List<String>, windowSize: Int): Int {
-    val depthMeasures = lines.asSequence().map { it.toInt() }.toList()
+private fun countDepthIncreasesSlidingWindow(depths: List<Int>, windowSize: Int): Int {
     var counter = 0
-
     var firstDepthsSum = 0
     for (i in 0 until windowSize) {
-        firstDepthsSum += depthMeasures[i]
+        firstDepthsSum += depths[i]
     }
     var prevDepthsSum = firstDepthsSum
 
     var newDepthsSum = 0
-    for (i in 0 .. depthMeasures.lastIndex - windowSize) {
-        newDepthsSum = prevDepthsSum - (depthMeasures[i]) + depthMeasures[i + windowSize]
+    for (i in 0 .. depths.lastIndex - windowSize) {
+        newDepthsSum = prevDepthsSum - (depths[i]) + depths[i + windowSize]
         if (newDepthsSum > prevDepthsSum) counter++
         prevDepthsSum = newDepthsSum
     }
     return counter
 }
 
-private fun countDepthIncreasesEachLine(lines: List<String>): Int {
+private fun countDepthIncreasesEachLine(input: List<Int>): Int {
     var prevDepth = Int.MAX_VALUE
     var counter = 0
-    for (line in lines) {
-        val newDepth = line.toInt()
-        if (newDepth > prevDepth) counter++
-        prevDepth = newDepth
+    for (depth in input) {
+        if (depth > prevDepth) counter++
+        prevDepth = depth
     }
     return counter
 }
